@@ -1,0 +1,13 @@
+import os
+
+# App config variables
+SECRET_KEY = os.getenv('SECRET_KEY', '')
+
+# Path to saved models and checkpoints
+CHECKPOINTS_PATH = os.getenv('CHECKPOINTS_PATH', '')
+
+# Path to datasets
+TRAINING_IMAGES = os.getenv('TRAINING_IMAGES', '')
+TRAINING_LABELS = os.getenv('TRAINING_LABELS', '')
+TESTING_IMAGES = os.getenv('TESTING_IMAGES', '')
+TESTING_LABELS = os.getenv('TESTING_LABELS', '')
