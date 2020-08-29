@@ -9,6 +9,8 @@ from app.controllers.neural_network.reader import DatasetReader
 class NeuralNetwork():
     def __init__(self, reader: DatasetReader):
         self.reader = reader
+        self.x_train, self.y_train = self.reader.get_training_dataset()
+        self.x_test, self.y_test = self.reader.get_testing_dataset()
         self.model = None
 
     def load(self, from_checkpoint=False):
@@ -38,9 +40,6 @@ class NeuralNetwork():
         if self.model is None:
             print('No model has been loaded')
             return
-
-        self.x_train, self.y_train = self.reader.get_training_dataset()
-        self.x_test, self.y_test = self.reader.get_testing_dataset()
 
         callbacks = [
             keras.callbacks.ModelCheckpoint(
