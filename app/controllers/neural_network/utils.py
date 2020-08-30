@@ -11,5 +11,5 @@ def train_model():
         current_app.config['TESTING_LABELS']
     )
     nn = NeuralNetwork(reader)
-    nn.load()
+    nn.load(from_checkpoint=True)
     nn.train()
