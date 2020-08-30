@@ -1,8 +1,11 @@
+from flask import current_app
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 import numpy as np
 
+from app.extensions import db
+from app.models.job import Jobs, JobStatus
 from app.controllers.neural_network.reader import DatasetReader
 
 
@@ -34,16 +37,23 @@ class NeuralNetwork():
         )
 
         if from_checkpoint:
-            self.model.load_weights('./models/checkpoint')
+            checkpoint_path = current_app.config['CHECKPOINTS_PATH']
+            self.model.load_weights(f'{checkpoint_path}/checkpoint')
 
     def train(self):
         if self.model is None:
             print('No model has been loaded')
             return
 
+        session = db.create_session({})()
+        job = Jobs(status=JobStatus.IN_PROGRESS)
+        session.add(job)
+        session.commit()
+
+        checkpoint_path = current_app.config['CHECKPOINTS_PATH']
         callbacks = [
             keras.callbacks.ModelCheckpoint(
-                filepath='./models/checkpoint',
+                filepath=f'{checkpoint_path}/checkpoint',
                 save_weights_only=True
             )
         ]
@@ -51,13 +61,20 @@ class NeuralNetwork():
         batch_size = 64
         history = self.model.fit(
             self.x_train, self.y_train,
-            batch_size=batch_size, epochs=3, callbacks=callbacks
+            batch_size=batch_size, epochs=1, callbacks=callbacks
         )
 
         val_dataset = tf.data.Dataset.from_tensor_slices((self.x_test, self.y_test)).batch(batch_size)
         evaluation_metrics = self.model.evaluate(val_dataset)
 
-        return history, evaluation_metrics
+        session = db.create_session({})()
+        running_job = session.query(Jobs).filter_by(status=JobStatus.IN_PROGRESS).first()
+        running_job.status = JobStatus.FINISHED
+        running_job.history_loss = history.history['loss']
+        running_job.history_acc = history.history['acc']
+        running_job.evaluation_loss = evaluation_metrics[0]
+        running_job.evaluation_acc = evaluation_metrics[1]
+        session.commit()
 
     def test(self, data):
         predictions = self.model.predict(data)

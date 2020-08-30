@@ -1,5 +1,22 @@
 import os
 
+# DB connection variables
+DB_HOST = os.getenv('DB_HOST', '')
+DB_PORT = os.getenv('DB_PORT', '')
+DB_USER = os.getenv('DB_USER', '')
+DB_PASSWORD = os.getenv('DB_PASSWORD', '')
+DB_NAME = os.getenv('DB_NAME', '')
+
+SQLALCHEMY_DATABASE_URI = f'mysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+
+# We don't use this feature, so disable the feature and silence SQL
+# Alchemy warning about high memory usage.
+#
+# See also:
+# http://flask-sqlalchemy.pocoo.org/2.1/config/#configuration-keys
+# (the entry for this configuration key)
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+
 # App config variables
 SECRET_KEY = os.getenv('SECRET_KEY', '')
 
