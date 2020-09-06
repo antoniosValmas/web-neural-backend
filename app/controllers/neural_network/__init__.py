@@ -1,7 +1,7 @@
 from io import BytesIO
 from flask import Blueprint, request, current_app
 from flask.json import jsonify
-from multiprocessing import Process
+from threading import Thread
 import base64
 from PIL import Image
 from PIL import ImageOps
@@ -21,7 +21,7 @@ def predict():
         current_app.config['TESTING_IMAGES'],
         current_app.config['TESTING_LABELS']
     )
-    nn = NeuralNetwork(reader)
+    nn = NeuralNetwork(reader, current_app.config)
     body = request.get_json()
     url = body['url']
     base64_img = url.split(',', 1)[1]
@@ -33,8 +33,8 @@ def predict():
     imageArray = [
         [
             seq[i + 28 * j]
-            if seq[i + 28 * j] > 50
-            else 0
+            # if seq[i + 28 * j] > 50
+            # else 0
             for i in range(28)
         ] for j in range(28)
     ]
@@ -49,7 +49,7 @@ def predict():
 
 @neural_network.route('/train', methods=['POST'])
 def train():
-    job = Process(target=train_model)
+    job = Thread(target=train_model, args=(current_app._get_current_object(),))
     job.start()
 
     return jsonify({

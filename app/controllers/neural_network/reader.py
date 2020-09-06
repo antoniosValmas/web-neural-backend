@@ -54,7 +54,6 @@ class DatasetReader:
     def display(self, image=None):
         index = random.randint(0, self.size - 1)
         sample = self.train_images[index] if image is None else image
-        print(sample)
         for j in range(self.columns):
             for i in range(self.rows):
                 print('.' if sample[j][i] <= 30 else '@', end='')
