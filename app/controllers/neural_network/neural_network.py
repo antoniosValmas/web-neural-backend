@@ -46,7 +46,7 @@ class NeuralNetwork():
             checkpoint_path = self.config['CHECKPOINTS_PATH']
             self.model.load_weights(f'{checkpoint_path}/checkpoint')
 
-    def train(self):
+    def train(self, epochs: int):
         if self.model is None:
             print('No model has been loaded')
             return
@@ -67,7 +67,7 @@ class NeuralNetwork():
         batch_size = 64
         history = self.model.fit(
             self.x_train, self.y_train,
-            batch_size=batch_size, epochs=1, callbacks=callbacks
+            batch_size=batch_size, epochs=epochs, callbacks=callbacks
         )
 
         val_dataset = tf.data.Dataset.from_tensor_slices((self.x_test, self.y_test)).batch(batch_size)

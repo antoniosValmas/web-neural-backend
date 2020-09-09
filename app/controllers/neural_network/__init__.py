@@ -23,7 +23,7 @@ def predict():
     )
     nn = NeuralNetwork(reader, current_app.config)
     body = request.get_json()
-    url = body['url']
+    url: str = body['url']
     base64_img = url.split(',', 1)[1]
     img = Image.open(BytesIO(base64.b64decode(base64_img))).convert('L')
     img = img.resize((28, 28))
@@ -49,7 +49,10 @@ def predict():
 
 @neural_network.route('/train', methods=['POST'])
 def train():
-    job = Thread(target=train_model, args=(current_app._get_current_object(),))
+    body = request.get_json()
+    epochs: int = body['epochs']
+    from_checkpoint: bool = body['fromCheckpoint']
+    job = Thread(target=train_model, args=(current_app._get_current_object(), epochs, from_checkpoint))
     job.start()
 
     return jsonify({
