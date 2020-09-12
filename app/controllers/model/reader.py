@@ -11,7 +11,6 @@ class DatasetReader:
         self.testing_labels = testing_labels
 
     def get_training_dataset(self):
-        print(self.training_labels)
         with open(self.training_labels, 'rb') as labels_file:
             magic, size = struct.unpack(">II", labels_file.read(8))
             if magic != 2049:

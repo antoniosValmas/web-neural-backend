@@ -10,3 +10,5 @@ class Models(Base):
 
     model_id = db.Column(db.Integer, primary_key=True)
     model_name = db.Column(db.String(200), nullable=False)
+
+    jobs = db.relationship('Jobs')

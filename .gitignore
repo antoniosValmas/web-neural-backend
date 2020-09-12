@@ -66,3 +66,4 @@ config.py
 # Datasets
 datasets/
 checkpoints/
+models/

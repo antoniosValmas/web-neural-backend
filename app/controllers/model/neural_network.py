@@ -25,7 +25,6 @@ class NeuralNetwork():
     def create(self, model_name, layers_json):
         inputs = keras.Input(shape=self.reader.get_shape())
         x = layers.experimental.preprocessing.Rescaling(1.0 / 255)(inputs)
-        x = layers.experimental.preprocessing.RandomContrast(0.5)(x)
         for layer in layers_json:
             kerasLayer, activation = self.parseLayer(layer).getKerasLayer()
             x = kerasLayer(x)
@@ -48,39 +47,15 @@ class NeuralNetwork():
         models_path = self.config['MODELS_PATH']
         self.model.save(f'{models_path}/model_{model.model_id}')
 
-    def load(self, model_id, from_checkpoint=False):
-        # inputs = keras.Input(shape=self.reader.get_shape())
-        # x = layers.experimental.preprocessing.Rescaling(1.0 / 255)(inputs)
-        # x = layers.experimental.preprocessing.RandomContrast(0.5)(x)
-        # x = layers.Conv2D(filters=32, kernel_size=(5, 5), activation="relu")(x)
-        # x = layers.Conv2D(filters=32, kernel_size=(5, 5), activation="relu")(x)
-        # x = layers.MaxPool2D(pool_size=(5, 5), strides=(1, 1))(x)
-        # x = layers.Conv2D(filters=64, kernel_size=(3, 3), activation="relu")(x)
-        # x = layers.Conv2D(filters=64, kernel_size=(3, 3), activation="relu")(x)
-        # x = layers.MaxPool2D(pool_size=(3, 3), strides=(1, 1))(x)
-        # x = layers.Conv2D(filters=64, kernel_size=(3, 3), activation="relu")(x)
-        # x = layers.Conv2D(filters=64, kernel_size=(3, 3), activation="relu")(x)
-        # x = layers.MaxPool2D(pool_size=(3, 3), strides=(1, 1))(x)
-        # x = layers.Flatten()(x)
-        # x = layers.Dense(units=100, activation="relu")(x)
-        # outputs = layers.Dense(self.reader.get_number_of_classes(), activation="softmax")(x)
-
-        # self.model = keras.Model(inputs=inputs, outputs=outputs)
-        # self.model.compile(
-        #     optimizer="adam",
-        #     loss="sparse_categorical_crossentropy",
-        #     metrics=[
-        #         keras.metrics.SparseCategoricalAccuracy(name="acc")
-        #     ],
-        # )
+    def load(self, model_id, job_id=None, from_checkpoint=False):
         models_path = self.config['MODELS_PATH']
         self.model = keras.models.load_model(f'{models_path}/model_{model_id}')
 
         if from_checkpoint:
             checkpoint_path = self.config['CHECKPOINTS_PATH']
-            self.model.load_weights(f'{checkpoint_path}/checkpoint')
+            self.model.load_weights(f'{checkpoint_path}/model_{model_id}/checkpoint_{job_id}/checkpoint')
 
-    def train(self, model_id: int,  epochs: int):
+    def train(self, model_id: int, epochs: int, x_train=None, y_train=None):
         if self.model is None:
             print('No model has been loaded')
             return
@@ -93,25 +68,25 @@ class NeuralNetwork():
         checkpoint_path = self.config['CHECKPOINTS_PATH']
         callbacks = [
             keras.callbacks.ModelCheckpoint(
-                filepath=f'{checkpoint_path}/checkpoint',
+                filepath=f'{checkpoint_path}/model_{model_id}/checkpoint_{job.job_id}/checkpoint',
                 save_weights_only=True
             )
         ]
 
         batch_size = 64
-        history = self.model.fit(
-            self.x_train, self.y_train,
-            batch_size=batch_size, epochs=epochs, callbacks=callbacks
-        )
+        if (x_train is not None) and (y_train is not None):
+            history = self.model.fit(
+                x_train, y_train,
+                epochs=1, callbacks=callbacks
+            )
+        else:
+            history = self.model.fit(
+                self.x_train, self.y_train,
+                batch_size=batch_size, epochs=epochs, callbacks=callbacks
+            )
 
         val_dataset = tf.data.Dataset.from_tensor_slices((self.x_test, self.y_test)).batch(batch_size)
         evaluation_metrics = self.model.evaluate(val_dataset)
-        # predictions = self.model.predict(self.x_test)
-        # for i, prediction in enumerate(predictions):
-        #     max_index = max(range(len(prediction)), key=prediction.__getitem__)
-        #     if self.y_test[i] != max_index:
-        #         print(f'Expected {self.y_test[i]} predicted {max_index}')
-        #         self.reader.display(self.x_test[i])
 
         session = db.create_scoped_session()
         running_job = session.query(Jobs).filter_by(status=JobStatus.IN_PROGRESS).first()
