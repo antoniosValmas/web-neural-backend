@@ -1,3 +1,3 @@
-from app.controllers.neural_network import neural_network
+from app.controllers.model import model
 
-blueprints = [neural_network]
+blueprints = [model]

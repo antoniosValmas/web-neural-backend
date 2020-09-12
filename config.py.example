@@ -22,6 +22,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', '')
 
 # Path to saved models and checkpoints
 CHECKPOINTS_PATH = os.getenv('CHECKPOINTS_PATH', '')
+CHECKPOINTS_PATH = os.getenv('MODELS_PATH', '')
 
 # Path to datasets
 TRAINING_IMAGES = os.getenv('TRAINING_IMAGES', '')
