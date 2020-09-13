@@ -34,9 +34,10 @@ def serialize_checkpoint(job: Jobs):
 def data_URL_to_number_array(data_URL):
     base64_img = data_URL.split(',', 1)[1]
     img = Image.open(BytesIO(base64.b64decode(base64_img))).convert('L')
-    img = img.resize((28, 28))
+    img = img.resize((20, 20))
     img = invert(img)
     img = ImageOps.autocontrast(img)
+    img = ImageOps.expand(img, border=4)
     seq = list(img.getdata())
     return [
         [
