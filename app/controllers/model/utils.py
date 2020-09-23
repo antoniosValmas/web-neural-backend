@@ -26,7 +26,6 @@ def train_model(current_app: Flask, model_id: int, job_id: int, epochs: int, fro
 def serialize_checkpoint(job: Jobs):
     return {
         'checkpoint_id': job.job_id,
-        'accuracy': job.evaluation_acc,
         'created_at': job.created_at
     }
 

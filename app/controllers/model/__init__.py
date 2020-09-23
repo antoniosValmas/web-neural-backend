@@ -62,7 +62,7 @@ def train(model_id):
         return jsonify({
             'status': 'JOB_ALREADY_RUNNING'
         })
-    print(job_id)
+    session.commit()
 
     job = Thread(
         target=train_model,
@@ -101,6 +101,7 @@ def train_user_input(model_id, job_id):
 def get_checkpoints():
     session = db.create_scoped_session()
     models = session.query(Models).all()
+    session.commit()
 
     return jsonify([
         {
@@ -113,3 +114,17 @@ def get_checkpoints():
         }
         for model in models
     ])
+
+
+@model.route('/<int:model_id>/checkpoints/<int:job_id>/statistics', methods=['GET'])
+def get_statistics(model_id: int, job_id: int):
+    session = db.create_scoped_session()
+    checkpoint = session.query(Jobs).filter_by(job_id=job_id).first()
+    session.commit()
+
+    return jsonify({
+        'training_loss': checkpoint.history_loss,
+        'training_acc': checkpoint.history_acc,
+        'evaluation_loss': checkpoint.evaluation_loss,
+        'evaluation_acc': checkpoint.evaluation_acc,
+    })
